@@ -5,28 +5,32 @@ const bcrypt = require('bcrypt');
 const cors = require('cors');
 
 const app = express();
-const allowedOrigins = [
-  'https://billing.exportbazaar.in',
-  'http://billing.exportbazaar.in'
-];
-
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('CORS not allowed from this origin: ' + origin));
-    }
-  },
-  credentials: true
-}));
-
-// Handle preflight requests
-app.options('*', cors());
-
 app.use(express.json());
 
-// MySQL connection
+// ✅ CORS Middleware — Supports both http and https subdomains
+const allowedOrigins = [
+  'http://billing.exportbazaar.in',
+  'https://billing.exportbazaar.in'
+];
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+
+  next();
+});
+
+// ✅ MySQL Connection Setup
 const db = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -36,13 +40,13 @@ const db = mysql.createConnection({
 
 db.connect(err => {
   if (err) {
-    console.error('Database connection failed:', err.stack);
+    console.error('❌ Database connection failed:', err.stack);
     return;
   }
-  console.log('Connected to MySQL');
+  console.log('✅ Connected to MySQL');
 });
 
-// Login route
+// ✅ Login Route
 app.post('/api/login', (req, res) => {
   const { email, password } = req.body;
   db.query('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
@@ -57,9 +61,10 @@ app.post('/api/login', (req, res) => {
   });
 });
 
+// ✅ Test Route
 app.get('/', (req, res) => {
-  res.send('Export Bazaar API is running');
+  res.send('🚀 Export Bazaar API is running');
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
