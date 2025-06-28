@@ -13,7 +13,7 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// MySQL connection using env variables
+// MySQL connection pool
 const db = mysql.createPool({
   connectionLimit: 10,
   host: process.env.DB_HOST,
@@ -22,16 +22,7 @@ const db = mysql.createPool({
   database: process.env.DB_NAME,
 });
 
-
-db.connect(err => {
-  if (err) {
-    console.error('❌ Database connection failed:', err.stack);
-    return;
-  }
-  console.log('✅ Connected to MySQL');
-});
-
-// Simple test route
+// Test route
 app.get('/', (req, res) => {
   res.send('✅ Export Bazaar API is running');
 });
@@ -70,7 +61,6 @@ app.post('/api/login', (req, res) => {
   });
 });
 
-
-// Listen on port required by Render
+// Start server
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
