@@ -5,7 +5,11 @@ const bcrypt = require('bcrypt');
 const cors = require('cors');
 
 const app = express();
-app.use(cors({ origin: 'https://billing.exportbazaar.in' }));
+app.use(cors({
+  origin: ['https://billing.exportbazaar.in', 'http://billing.exportbazaar.in'],
+  credentials: true
+}));
+app.options('*', cors());
 app.use(express.json());
 
 // MySQL connection
