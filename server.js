@@ -5,11 +5,25 @@ const bcrypt = require('bcrypt');
 const cors = require('cors');
 
 const app = express();
+const allowedOrigins = [
+  'https://billing.exportbazaar.in',
+  'http://billing.exportbazaar.in'
+];
+
 app.use(cors({
-  origin: ['https://billing.exportbazaar.in', 'http://billing.exportbazaar.in'],
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS not allowed from this origin: ' + origin));
+    }
+  },
   credentials: true
 }));
+
+// Handle preflight requests
 app.options('*', cors());
+
 app.use(express.json());
 
 // MySQL connection
