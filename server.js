@@ -48,17 +48,41 @@ db.connect(err => {
 // ✅ Login route
 app.post('/api/login', (req, res) => {
   const { email, password } = req.body;
+  console.log("Login request received for:", email);
+
   db.query('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
-    if (err) return res.status(500).json({ error: 'Database error' });
-    if (results.length === 0) return res.status(401).json({ error: 'Invalid credentials' });
+    if (err) {
+      console.error("DB error:", err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    if (results.length === 0) {
+      console.warn("User not found");
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
 
     const user = results[0];
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) return res.status(401).json({ error: 'Invalid credentials' });
+    console.log("User found:", user);
 
-    res.json({ message: 'Login successful', user: { email: user.email, role: user.role } });
+    try {
+      const match = await bcrypt.compare(password, user.password);
+      if (!match) {
+        console.warn("Password mismatch");
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
+
+      console.log("Login successful");
+      res.json({
+        message: 'Login successful',
+        user: { email: user.email, role: user.role }
+      });
+    } catch (e) {
+      console.error("Bcrypt error:", e);
+      res.status(500).json({ error: 'Password comparison failed' });
+    }
   });
 });
+
 
 // ✅ Health check route
 app.get('/', (req, res) => {
