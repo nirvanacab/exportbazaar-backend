@@ -1,0 +1,5 @@
+DB_HOST=sg2nlmysql17plsk.secureserver.net
+DB_USER=export_user
+DB_PASS=Sefali@2025p
+DB_NAME=exportbazaar_db
+PORT=3000
