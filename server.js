@@ -7,30 +7,29 @@ const cors = require('cors');
 const app = express();
 app.use(express.json());
 
-// ✅ CORS Middleware — Supports both http and https subdomains
+// ✅ CORS configuration
 const allowedOrigins = [
   'http://billing.exportbazaar.in',
   'https://billing.exportbazaar.in'
 ];
 
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
 
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-
-  next();
-});
-
-// ✅ MySQL Connection Setup
+// ✅ MySQL connection
 const db = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -46,7 +45,7 @@ db.connect(err => {
   console.log('✅ Connected to MySQL');
 });
 
-// ✅ Login Route
+// ✅ Login route
 app.post('/api/login', (req, res) => {
   const { email, password } = req.body;
   db.query('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
@@ -61,10 +60,11 @@ app.post('/api/login', (req, res) => {
   });
 });
 
-// ✅ Test Route
+// ✅ Health check route
 app.get('/', (req, res) => {
   res.send('🚀 Export Bazaar API is running');
 });
 
+// ✅ Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
