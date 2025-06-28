@@ -40,6 +40,10 @@ app.post('/api/login', (req, res) => {
     const user = results[0];
     console.log("User found:", user);
 
+    console.log("Password entered by user:", password);
+    console.log("Password stored in DB:", user.password);
+
+
     try {
       const match = await bcrypt.compare(password, user.password);
       if (!match) {
